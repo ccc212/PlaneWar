@@ -4,19 +4,24 @@ from src.models.bullets import EnemyBullet
 from src.models.enemies import *
 
 
-class EnemyManager(Screen):
+class EnemyManager:
     def __init__(self):
-        super().__init__()
-        self.enemies = pygame.sprite.Group()
-        self.bullets = pygame.sprite.Group()
-        self.enemies_count = 0
+        # 获取 Screen 单例
+        self.screen_manager = Screen()
+        self.screen = self.screen_manager.screen
+        self.screen_rect = self.screen_manager.rect
+
+        # 初始化敌人管理
+        self.enemies = pygame.sprite.Group() # 敌人组
+        self.bullets = pygame.sprite.Group() # 敌人子弹组
+        self.enemies_count = 0 # 敌人总数
         self.born_time = 0
-        self.born_gap = random.randint(80, 180)
-        self.enemy_list = [Enemy1, Enemy2, Enemy3, Enemy4, Enemy5]
-        self.enemy_type = random.choice(self.enemy_list)
+        self.born_gap = random.randint(80, 180) # 敌人生成间隔
+        self.enemy_list = [Enemy1, Enemy2, Enemy3, Enemy4, Enemy5] # 敌人类型列表
+        self.enemy_type = random.choice(self.enemy_list) # 敌人类型
         self.enemy = self.enemy_type
         self.num = 0
-        self.boss_open = False
+        self.boss_open = False # 是否为boss关
 
     def update(self):
         if not self.boss_open:
@@ -47,6 +52,7 @@ class EnemyManager(Screen):
                 self.enemies.empty()
                 self.enemies_count = 0
 
+    # 随机生成敌人
     def _spawn_enemy(self):
         self.enemy_type = random.choice(self.enemy_list)
         self.enemy = self.enemy_type()
