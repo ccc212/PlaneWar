@@ -1,5 +1,5 @@
 from .base import Enemy
-from src.config.settings import RESOURCE_PATH, ENEMY_SPEEDS, SCREEN_WIDTH
+from client.src.config.settings import RESOURCE_PATH, ENEMY_SPEEDS, SCREEN_WIDTH
 import random
 import pygame
 
@@ -7,7 +7,7 @@ import pygame
 class Enemy1(Enemy):
     def __init__(self):
         super().__init__(
-            path=f'{RESOURCE_PATH}/icon/敌人1.png',
+            path=f'{RESOURCE_PATH}/icon/enemy1.png',
             rotation=180,
             scale=0.5,
             points=10,
@@ -22,7 +22,7 @@ class Enemy1(Enemy):
 class Enemy2(Enemy):
     def __init__(self):
         super().__init__(
-            path=f'{RESOURCE_PATH}/icon/敌人2.png',
+            path=f'{RESOURCE_PATH}/icon/enemy2.png',
             rotation=180,
             scale=0.75,
             points=15,
@@ -51,7 +51,7 @@ class Enemy2(Enemy):
 class Enemy3(Enemy):
     def __init__(self):
         super().__init__(
-            path=f'{RESOURCE_PATH}/icon/敌人3.png',
+            path=f'{RESOURCE_PATH}/icon/enemy3.png',
             rotation=180,
             scale=0.5,
             points=15,
@@ -76,7 +76,7 @@ class Enemy3(Enemy):
 class Enemy4(Enemy):
     def __init__(self):
         super().__init__(
-            path=f'{RESOURCE_PATH}/icon/敌人4.png',
+            path=f'{RESOURCE_PATH}/icon/enemy4.png',
             rotation=180,
             scale=0.3,
             points=15,
@@ -97,7 +97,7 @@ class Enemy4(Enemy):
 class Enemy5(Enemy):
     def __init__(self):
         super().__init__(
-            path=f'{RESOURCE_PATH}/icon/敌人5.png',
+            path=f'{RESOURCE_PATH}/icon/enemy5.png',
             rotation=180,
             scale=1,
             points=20,
@@ -115,7 +115,7 @@ class Enemy5(Enemy):
 class EnemyBoss(Enemy):
     def __init__(self):
         super().__init__(
-            path=f'{RESOURCE_PATH}/icon/敌人boss.png',
+            path=f'{RESOURCE_PATH}/icon/enemy_boss.png',
             rotation=0,
             scale=1.5,
             points=40,

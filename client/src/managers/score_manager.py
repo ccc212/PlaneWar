@@ -1,5 +1,5 @@
 import os
-from src.config.settings import HIGHEST_SCORE_FILE
+from client.src.config.settings import HIGHEST_SCORE_FILE
 
 
 class ScoreManager:

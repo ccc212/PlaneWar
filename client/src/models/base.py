@@ -1,6 +1,6 @@
 import pygame
 from pygame.sprite import Sprite
-from src.config.settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from client.src.config.settings import SCREEN_WIDTH, SCREEN_HEIGHT
 import random
 
 

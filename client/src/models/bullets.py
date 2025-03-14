@@ -1,5 +1,5 @@
 import pygame
-from src.config.settings import BULLET_SPEEDS
+from client.src.config.settings import BULLET_SPEEDS
 
 
 # 玩家子弹基类

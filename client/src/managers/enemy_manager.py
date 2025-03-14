@@ -1,7 +1,7 @@
-from src.config.settings import *
-from src.models.base import Screen
-from src.models.bullets import EnemyBullet
-from src.models.enemies import *
+from client.src.config.settings import *
+from client.src.models.base import Screen
+from client.src.models.bullets import EnemyBullet
+from client.src.models.enemies import *
 
 
 class EnemyManager:

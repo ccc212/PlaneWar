@@ -1,13 +1,13 @@
 import pygame
-from src.config.settings import GRAY
+from client.src.config.settings import GRAY
 
-class Info:
-    def __init__(self, text):
+class Text:
+    def __init__(self, text, size=40):
         # 创建字体对象
         # - 'fangsong': 字体名称，使用仿宋字体
         # - 40: 字体大小（像素）
         # - True: 是否加粗 (bold)
-        self.font = pygame.font.SysFont('fangsong', 40, True)
+        self.font = pygame.font.SysFont('fangsong', size, True)
 
         # 渲染文本为图像
         # - text: 要渲染的文本内容

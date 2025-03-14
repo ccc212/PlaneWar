@@ -1,6 +1,7 @@
-from src.config.settings import PLAYER_SPEED, PLAYER_HP, BULLET_NUM, SCREEN_WIDTH, SCREEN_HEIGHT
+from client.src.config.settings import PLAYER_SPEED, PLAYER_HP, BULLET_NUM, SCREEN_WIDTH, SCREEN_HEIGHT, RESOURCE_PATH
 from .base import GameObject
 from .bullets import *
+import pygame
 
 
 class Player(GameObject):
@@ -22,6 +23,10 @@ class Player(GameObject):
         self.fire_kind = 1
         self.bullets = pygame.sprite.Group()  # 玩家子弹组
         self.mleft = self.mright = self.mup = self.mdown = False
+        self.original_image = pygame.image.load(path)
+        self.tilted_image = pygame.image.load(f'{RESOURCE_PATH}/icon/plane_tilted.png')
+        self.image = self.original_image
+        self.rect = self.image.get_rect()
 
     def update(self):
         self._handle_movement()
@@ -52,10 +57,14 @@ class Player(GameObject):
     # 玩家移动
     def _handle_movement(self):
         if self.mleft and self.rect.left > 0:
+            self.image = pygame.transform.flip(self.tilted_image, True, False)
             self.rect.x -= self.speed
         if self.mright and self.rect.right < SCREEN_WIDTH:
+            self.image = self.tilted_image
             self.rect.x += self.speed
         if self.mup and self.rect.top > 0:
+            self.image = self.original_image
             self.rect.y -= self.speed
         if self.mdown and self.rect.bottom < SCREEN_HEIGHT:
+            self.image = self.original_image
             self.rect.y += self.speed
