@@ -35,7 +35,7 @@ class AuthService:
             raise ValueError('密码错误')
 
         # 生成token
-        token = create_token(user.id)
+        token = create_token(user.id, user.username)
 
         return LoginVO(
             token=token,

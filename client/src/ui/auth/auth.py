@@ -1,7 +1,7 @@
 import pygame
 
 from client.src.ui.common.input_box import InputBox
-from client.src.config.settings import BLACK, WHITE
+from client.src.config.settings import BLACK, WHITE, API_BASE_URL
 from client.src.ui.common.button import Button
 import requests
 
@@ -103,7 +103,7 @@ class AuthDialog:
         try:
             # 发送登录POST请求
             response = requests.post(
-                'http://localhost:5000/auth/login',
+                f'{API_BASE_URL}/auth/login',
                 json={
                     'username': self.username_input.text,
                     'password': self.password_input.text
@@ -124,7 +124,7 @@ class AuthDialog:
         try:
             # 发送注册POST请求
             response = requests.post(
-                'http://localhost:5000/auth/register',
+                f'{API_BASE_URL}/auth/register',
                 json={
                     'username': self.username_input.text,
                     'password': self.password_input.text
