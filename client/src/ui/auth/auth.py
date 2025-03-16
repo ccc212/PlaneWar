@@ -1,25 +1,31 @@
 import pygame
 
+from client.src.enums.game_state import MenuState
+from client.src.managers.state_manager import GameStateManager
 from client.src.ui.common.input_box import InputBox
 from client.src.config.settings import BLACK, WHITE, API_BASE_URL
 from client.src.ui.common.button import Button
 import requests
+
 
 class AuthDialog:
     def __init__(self, screen):
         # 初始化认证对话框
         self.screen = screen
         self.screen_rect = screen.get_rect()
-        
+
         # 对话框尺寸和位置
         self.width = 400
         self.height = 300
         self.rect = pygame.Rect(0, 0, self.width, self.height)
         self.rect.center = self.screen_rect.center
-        
+
         # 设置字体
         self.font = pygame.font.SysFont('fangsong', 30, True)
-        
+
+        # 状态管理器
+        self.state_manager = GameStateManager()
+
         # 创建用户名输入框
         self.username_input = InputBox(
             self.rect.left + 50,
@@ -28,6 +34,7 @@ class AuthDialog:
             40,
             '用户名'
         )
+
         # 创建密码输入框
         self.password_input = InputBox(
             self.rect.left + 50,
@@ -37,7 +44,7 @@ class AuthDialog:
             '密码',
             is_password=True
         )
-        
+
         # 创建登录按钮
         self.login_button = Button(
             screen,
@@ -62,31 +69,35 @@ class AuthDialog:
             BLACK,
             (self.rect.right - 20, self.rect.top + 20)
         )
-        
+
     def draw(self):
         # 绘制对话框背景
         pygame.draw.rect(self.screen, WHITE, self.rect)
         pygame.draw.rect(self.screen, BLACK, self.rect, 2)
-        
+
         # 绘制输入框和按钮
         self.username_input.draw(self.screen)
         self.password_input.draw(self.screen)
         self.login_button.draw()
         self.register_button.draw()
         self.close_button.draw()
-        
+
     def handle_click(self, pos):
         # 点击关闭按钮
         if self.close_button.rect.collidepoint(pos):
-            return 'close'
-            
+            self.state_manager.set_menu_state(MenuState.MAIN)
+
         # 点击登录按钮
         if self.login_button.rect.collidepoint(pos):
-            return self._handle_login()
-            
+            username = self._handle_login()
+            self.state_manager.set_menu_state(MenuState.MAIN)
+            return username
+
         # 点击注册按钮
         if self.register_button.rect.collidepoint(pos):
-            return self._handle_register()
+            username = self._handle_register()
+            self.state_manager.set_menu_state(MenuState.MAIN)
+            return username
             
         # 点击输入框
         self.username_input.handle_click(pos)

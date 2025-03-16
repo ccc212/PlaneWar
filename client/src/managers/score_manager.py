@@ -3,7 +3,15 @@ from client.src.config.settings import HIGHEST_SCORE_FILE
 
 
 class ScoreManager:
-    def __init__(self):
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._init()
+        return cls._instance
+
+    def _init(self):
         self.highest_score = self.get_highest_score()
 
     # 获取最高分
