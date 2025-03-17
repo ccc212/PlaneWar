@@ -6,26 +6,25 @@ from server.domain.vo.leaderboard_vo import TopScoreVO
 
 class LeaderboardService:
     # 更新用户分数
-    def update_score(self, data: dict) -> bool:
+    def update_score(self, data: dict) -> int:
         # 参数校验
-        user_id = data.get('user_id')
+        username = data.get('username')
         score = data.get('score')
         
         if not score:
             raise ValueError('分数不能为空')
             
         # 查找用户
-        user = User.query.get(user_id)
+        user = User.query.filter_by(username=username).first()
         if not user:
             raise ValueError('用户不存在')
             
         # 只有超过最高分才更新
-        if score > user.highest_score:
+        if int(score) > int(user.highest_score):
             user.highest_score = score
             db.session.commit()
-            return True
-            
-        return False
+            return score
+        return 0
 
     # 获取排行榜
     def get_top_scores(self, limit: int = 10) -> List[TopScoreVO]:
@@ -43,3 +42,11 @@ class LeaderboardService:
             score=user.highest_score,
             rank=index + 1
         ) for index, user in enumerate(top_users)]
+
+    # 获取最高分数
+    def get_highest_score(self) -> int:
+        user = User.query.order_by(
+            User.highest_score.desc()
+        ).first()
+        return user.highest_score if user else 0
+

@@ -1,18 +1,16 @@
-import time
-import pygame
 import pyautogui
-import os
+import pygame
 
+from client.src.enums.even_type import EventType
+from client.src.enums.game_state import GameState, MenuState
 from client.src.managers.score_manager import ScoreManager
+from client.src.managers.state_manager import GameStateManager
 from client.src.models.base import Screen
-from client.src.ui.common.text import Text
+from client.src.ui.game.game import GameUI
 from client.src.ui.game.menu import Menu
 from config.settings import *
 from managers.enemy_manager import EnemyManager
 from models.player import Player
-from client.src.enums.game_state import GameState, MenuState
-from client.src.managers.state_manager import GameStateManager
-from client.src.enums.even_type import EventType
 
 
 class App:
@@ -40,6 +38,7 @@ class App:
 
         # 初始化UI
         self.menu = Menu(self.screen)
+        self.game_ui = GameUI(self.screen)
 
         # 模拟按下shift键切换为英文输入
         pyautogui.press('shift')
@@ -65,8 +64,8 @@ class App:
         print(new_state)
         # if new_state == GameState.PLAYING:
         #     self.start = True
-        # elif new_state == GameState.OVER:
-        #     self.restart_game()
+        if new_state == GameState.OVER:
+            self.score_manager.update_highest_score(self.score)
         # elif new_state == GameState.MAIN:
         #     self.start = False
 
@@ -210,35 +209,6 @@ class App:
                 self.enemy_manager.enemies.draw(self.screen)
                 self.level += 1
 
-    def update_score(self):
-        # 更新分数显示
-        self.highest_score_str = Text('最高分：' + str(self.score_manager.get_highest_score()))
-        self.highest_score_str.str_rect = pygame.Rect(0, 0, 1800, 40)
-        self.score_str = Text('分数：' + str(self.score))
-        self.score_str.str_rect = pygame.Rect(0, 40, 1800, 40)
-        self.level_str = Text('关卡：' + str(self.level))
-        self.level_str.str_rect = pygame.Rect(0, 80, 1800, 40)
-        self.tab_str = Text('按Tab更换攻击方式')
-        self.tab_str.str_rect.midtop = self.screen_rect.midtop
-
-        self.screen.blit(self.highest_score_str.str_image, self.highest_score_str.str_rect)
-        self.screen.blit(self.score_str.str_image, self.score_str.str_rect)
-        self.screen.blit(self.level_str.str_image, self.level_str.str_rect)
-        self.screen.blit(self.tab_str.str_image, self.tab_str.str_rect)
-
-    def update_bullets(self):
-        # 更新子弹位置
-        for bullet in self.plane.bullets:
-            pygame.draw.rect(self.screen, BLACK, bullet.rect)
-            bullet.update()
-            if bullet.rect.bottom < 0:
-                self.plane.bullets.remove(bullet)
-        for bullet in self.enemy_manager.bullets:
-            pygame.draw.rect(self.screen, BLACK, bullet.rect)
-            bullet.update()
-            if bullet.rect.bottom > self.screen_rect.bottom:
-                self.enemy_manager.bullets.remove(bullet)
-
     def update_enemies(self):
         # 更新敌人位置
         self.enemy_manager.update()
@@ -252,9 +222,7 @@ class App:
             self.enemy_manager.boss_open = False
 
     def run(self):
-        # 游戏主循环
         while True:
-            self.score_manager.get_highest_score()
             self.clock.tick(FPS)
             self.screen.fill(WHITE)
             self.events()
@@ -262,23 +230,25 @@ class App:
             self.game_state = self.state_manager.get_game_state()
             
             if self.game_state == GameState.PLAYING:
-                self.plane_hp()
+                self.game_ui.draw_hp(self.plane.hp)
                 self.collision()
                 if self.plane.hp > 0:
                     self.screen.blit(self.plane.image, self.plane.rect)
                     self.level_change()
                     self.plane.update()
                     self.update_enemies()
-                    self.update_bullets()
-                    self.update_score()
+                    self.game_ui.draw_bullets(self.plane.bullets, self.enemy_manager.bullets)
+                    self.game_ui.draw_score(
+                        self.score,
+                        self.score_manager.get_highest_score(),
+                        self.level
+                    )
                 else:
                     self.state_manager.set_game_state(GameState.OVER)
             else:
                 self.menu.draw()
                 self._init_attributes()
-                # self.restart_game()
 
-            self.score_manager.update_highest_score(self.score)
             pygame.display.update()
 
 

@@ -9,12 +9,11 @@ leaderboard_bp = Blueprint('leaderboard', __name__)
 leaderboard_service = LeaderboardService()
 
 # 更新分数
-@leaderboard_bp.route('/score', methods=['POST'])
+@leaderboard_bp.route('/update', methods=['PUT'])
 @jwt_required  # 需要JWT认证
 def update_score():
     data = request.get_json()
-    data['user_id'] = request.user_id  # 从JWT中获取用户ID
-    
+
     try:
         updated = leaderboard_service.update_score(data)
         return jsonify({
@@ -35,3 +34,12 @@ def get_top_scores():
     return jsonify(Result.success(
         data=scores
     ))
+
+# 获取最高分数
+@leaderboard_bp.route('/highest', methods=['GET'])
+def get_highest_score():
+    score = leaderboard_service.get_highest_score()
+    return jsonify(Result.success(
+        data=score
+    ))
+

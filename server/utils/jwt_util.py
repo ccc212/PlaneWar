@@ -30,6 +30,7 @@ def jwt_required(f):
 
         try:
             # 解析token
+            token = token.split(' ')[1]  # Bearer token
             data = jwt.decode(
                 token,
                 Config.JWT_SECRET_KEY,
