@@ -43,3 +43,11 @@ def get_highest_score():
         data=score
     ))
 
+# 获取指定用户的最高分数
+@leaderboard_bp.route('/user/<string:username>', methods=['GET'])
+def get_user_highest_score(username):
+    score = leaderboard_service.get_user_highest_score(username)
+    return jsonify(Result.success(
+        data=score
+    ))
+

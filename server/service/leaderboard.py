@@ -50,3 +50,8 @@ class LeaderboardService:
         ).first()
         return user.highest_score if user else 0
 
+    # 获取指定用户的最高分数
+    def get_user_highest_score(self, username: str):
+        user = User.query.filter_by(username=username).first()
+        return user.highest_score if user else 0
+

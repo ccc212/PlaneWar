@@ -1,10 +1,9 @@
 import pygame
-import requests
 
 from client.src.config.settings import BLACK, WHITE, API_BASE_URL
 from client.src.enums.game_state import MenuState
-from client.src.managers.state_manager import GameStateManager
 from client.src.managers.auth_manager import AuthManager
+from client.src.managers.state_manager import GameStateManager
 from client.src.ui.common.message_dialog import MessageDialog
 from client.src.utils.http_client import HttpClient
 
@@ -14,6 +13,7 @@ class LeaderboardDialog:
         # 初始化
         self.screen = screen
         self.screen_rect = screen.get_rect()
+        self.my_rank_data = None
 
         # 状态管理器
         self.state_manager = GameStateManager()
@@ -98,7 +98,6 @@ class LeaderboardDialog:
 
         # 绘制排行榜数据
         start_y = header_y + 60
-        my_rank_data = None
         username = AuthManager().get_username()
         for item in self.leaderboard_data:
             # 排名
@@ -114,7 +113,7 @@ class LeaderboardDialog:
             name_rect.top = start_y
             if item['username'] == username:
                 # 存下我的排行榜数据
-                my_rank_data = item
+                self.my_rank_data = item
 
             # 分数
             score_text = self.item_font.render(str(item['score']), True, BLACK)
@@ -140,21 +139,21 @@ class LeaderboardDialog:
 
         # 绘制我的排名
         start_y += 20
-        if my_rank_data:
+        if self.my_rank_data:
             # 排名
-            rank_text = self.item_font.render(f"{my_rank_data['rank']}", True, BLACK)
+            rank_text = self.item_font.render(f"{self.my_rank_data['rank']}", True, BLACK)
             rank_rect = rank_text.get_rect()
             rank_rect.left = self.rect.left + 20
             rank_rect.top = start_y
 
             # 用户名
-            name_text = self.item_font.render(my_rank_data['username'], True, BLACK)
+            name_text = self.item_font.render(self.my_rank_data['username'], True, BLACK)
             name_rect = name_text.get_rect()
             name_rect.left = self.rect.left + 120
             name_rect.top = start_y
 
             # 分数
-            score_text = self.item_font.render(str(my_rank_data['score']), True, BLACK)
+            score_text = self.item_font.render(str(self.my_rank_data['score']), True, BLACK)
             score_rect = score_text.get_rect()
             score_rect.left = self.rect.right - 80
             score_rect.top = start_y

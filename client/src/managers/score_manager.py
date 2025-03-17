@@ -16,15 +16,14 @@ class ScoreManager:
 
     def _init(self):
         self._highest_score = None
-        self.get_highest_score()
         self.screen = Screen().screen
         self.message_dialog = MessageDialog(self.screen)
 
     # 获取最高分
-    def get_highest_score(self):
+    def get_highest_score(self, username=None):
         if self._highest_score is None:
             try:
-                response = HttpClient.get(f'{API_BASE_URL}/leaderboard/highest')
+                response = HttpClient.get(f'{API_BASE_URL}/leaderboard/user/{username}')
                 self._highest_score = response.json()['data'] if response.status_code == 200 else 0
             except Exception as e:
                 self.message_dialog.show(str(e))

@@ -1,6 +1,7 @@
 import pygame
 
 from client.src.enums.game_state import MenuState
+from client.src.managers.score_manager import ScoreManager
 from client.src.managers.state_manager import GameStateManager
 from client.src.ui.common.input_box import InputBox
 from client.src.config.settings import BLACK, WHITE, API_BASE_URL
@@ -102,6 +103,7 @@ class AuthDialog:
         if self.login_button.rect.collidepoint(pos):
             username = self._handle_login()
             if username is not None:
+                ScoreManager().get_highest_score(username)
                 self.state_manager.set_menu_state(MenuState.MAIN)
                 return username
             return '未登录'
