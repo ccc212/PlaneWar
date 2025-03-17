@@ -7,6 +7,7 @@ from client.src.ui.auth.auth import AuthDialog
 from client.src.ui.common.button import Button
 from client.src.ui.leaderboard.leaderboard_dialog import LeaderboardDialog
 from client.src.managers.state_manager import GameStateManager
+from client.src.ui.set_dialog.set_dialog import SetDialog
 
 
 class Menu:
@@ -16,40 +17,52 @@ class Menu:
         # 获取屏幕矩形区域
         self.screen_rect = screen.get_rect()
 
-        # 创建开始按钮字体
-        self.play_font = pygame.font.SysFont('fangsong', 90, True)
+        # 按钮字体
+        self.button_font = pygame.font.SysFont('fangsong', 50, True)
+
+        # 开始按钮
         self.play_button = Button(
             screen=screen,
             text='开始',
-            font=self.play_font,
+            font=self.button_font,
             color=BLACK,
-            center=(self.screen_rect.centerx, self.screen_rect.centery - 50)
+            center=(self.screen_rect.centerx, self.screen_rect.centery - 100)
         )
 
-        # 创建排行榜按钮字体
-        self.leaderboard_font = pygame.font.SysFont('fangsong', 90, True)
+        # 排行榜按钮
         self.leaderboard_button = Button(
             screen=screen,
             text='排行榜',
-            font=self.leaderboard_font,
+            font=self.button_font,
             color=BLACK,
-            center=(self.screen_rect.centerx, self.screen_rect.centery + 50)
+            center=(self.screen_rect.centerx, self.screen_rect.centery)
         )
 
-        # 创建用户状态按钮字体
+        # 设置按钮
+        self.set_button = Button(
+            screen=screen,
+            text='设置',
+            font=self.button_font,
+            color=BLACK,
+            center=(self.screen_rect.centerx, self.screen_rect.centery + 100)
+        )
+
+        # 用户状态按钮
         self.auth_font = pygame.font.SysFont('fangsong', 30, True)
         self.auth_button = Button(
             screen=screen,
             text='未登录',
             font=self.auth_font,
             color=BLACK,
-            center=(self.screen_rect.right - 100, 50)
+            center=(self.screen_rect.right - 150, 50)
         )
 
         # 创建登录对话框
         self.auth_dialog = AuthDialog(screen)
         # 创建排行榜对话框
         self.leaderboard_dialog = LeaderboardDialog(screen)
+        # 创建设置对话框
+        self.set_dialog = SetDialog(screen)
 
         # 获取状态管理器实例
         self.state_manager = GameStateManager()
@@ -71,14 +84,17 @@ class Menu:
             self.leaderboard_dialog.draw()
         elif self.current_state == MenuState.AUTH:
             self.auth_dialog.draw()
+        elif self.current_state == MenuState.SET:
+            self.set_dialog.draw()
         elif self.current_state == MenuState.MAIN:
             if not self.username:
                 self.auth_button.update_text('未登录')
             else:
                 self.auth_button.update_text(self.username)
-            # 绘制用户状态按钮、开始按钮、排行榜按钮
+            # 绘制按钮
             self.auth_button.draw()
             self.play_button.draw()
+            self.set_button.draw()
             self.leaderboard_button.draw()
 
     def handle_click(self, pos):
@@ -88,6 +104,8 @@ class Menu:
             result = self.auth_dialog.handle_click(pos)
             if isinstance(result, str):
                 self.username = result
+        elif self.current_state == MenuState.SET:
+            self.set_dialog.handle_click(pos)
         elif self.current_state == MenuState.MAIN:
             if self.auth_button.rect.collidepoint(pos):
                 self.state_manager.set_menu_state(MenuState.AUTH)
@@ -95,3 +113,5 @@ class Menu:
                 self.state_manager.set_menu_state(MenuState.LEADERBOARD)
             elif self.play_button.rect.collidepoint(pos):
                 self.state_manager.set_game_state(GameState.PLAYING)
+            elif self.set_button.rect.collidepoint(pos):
+                self.state_manager.set_menu_state(MenuState.SET)

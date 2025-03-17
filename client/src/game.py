@@ -11,6 +11,7 @@ from client.src.ui.game.menu import Menu
 from config.settings import *
 from managers.enemy_manager import EnemyManager
 from models.player import Player
+from client.src.managers.settings_manager import SettingsManager
 
 
 class App:
@@ -28,6 +29,7 @@ class App:
         # 初始化管理器
         self.score_manager = ScoreManager()
         self.enemy_manager = EnemyManager()
+        self.settings_manager = SettingsManager()
         self.state_manager = GameStateManager()
         self.state_manager.add_listener(EventType.GAME_STATE_CHANGE, self._on_game_state_change)
 
@@ -83,65 +85,62 @@ class App:
                     self.menu.handle_click(self.mouse_pos)
             # 键盘按下事件
             elif event.type == pygame.KEYDOWN:
-                if self.game_state == GameState.PLAYING:
-                    match event.key:
-                        case pygame.K_w | pygame.K_UP:
-                            self.plane.mup = True
-                        case pygame.K_a | pygame.K_LEFT:
-                            self.plane.mleft = True
-                            self.plane.image = pygame.transform.flip(self.plane.tilted_image, True, False)
-                        case pygame.K_s | pygame.K_DOWN:
-                            self.plane.mdown = True
-                        case pygame.K_d | pygame.K_RIGHT:
-                            self.plane.mright = True
-                            self.plane.image = self.plane.tilted_image
-                        case pygame.K_SPACE:
-                            self.plane.fire = True
-                        case pygame.K_RETURN:
-                            self.state_manager.set_game_state(GameState.PAUSED)
-                        case pygame.K_ESCAPE:
-                            print('游戏已结束')
-                            pygame.quit()
-                            self.state_manager.set_game_state(GameState.OVER)
-                        case pygame.K_TAB:
-                            # 切换武器类型
-                            if self.plane.fire_kind == 1:
-                                self.plane.fire_kind = 2
-                            elif self.plane.fire_kind == 2:
-                                self.plane.fire_kind = 3
-                            elif self.plane.fire_kind == 3:
-                                self.plane.fire_kind = 1
-                else:
+                if self.state_manager.get_menu_state() == MenuState.SET:
+                    self.menu.set_dialog.handle_keydown(event)
+                elif self.game_state == GameState.PLAYING:
+                    keyboard_settings = self.settings_manager.get_keyboard_settings()
+                    if event.key == keyboard_settings['up']:
+                        self.plane.mup = True
+                    elif event.key == keyboard_settings['down']:
+                        self.plane.mdown = True
+                    elif event.key == keyboard_settings['left']:
+                        self.plane.mleft = True
+                        self.plane.image = pygame.transform.flip(self.plane.tilted_image, True, False)
+                    elif event.key == keyboard_settings['right']:
+                        self.plane.mright = True
+                        self.plane.image = self.plane.tilted_image
+                    elif event.key == keyboard_settings['shoot']:
+                        self.plane.fire = True
+                    elif event.key == keyboard_settings['pause']:
+                        self.state_manager.set_game_state(GameState.PAUSED)
+                    elif event.key == pygame.K_ESCAPE:
+                        print('游戏已结束')
+                        pygame.quit()
+                        self.state_manager.set_game_state(GameState.OVER)
+                    elif event.key == pygame.K_TAB:
+                        # 切换武器类型
+                        if self.plane.fire_kind == 1:
+                            self.plane.fire_kind = 2
+                        elif self.plane.fire_kind == 2:
+                            self.plane.fire_kind = 3
+                        elif self.plane.fire_kind == 3:
+                            self.plane.fire_kind = 1
+                elif self.state_manager.get_menu_state() == MenuState.AUTH:
                     # 处理输入框事件
                     self.menu.auth_dialog.handle_event(event)
-
-                    match event.key:
-                        case pygame.K_ESCAPE:
-                            print('游戏已结束')
-                            pygame.quit()
-                            self.state_manager.set_game_state(GameState.OVER)
+                    
 
             # 键盘松开事件
             elif event.type == pygame.KEYUP:
-                match event.key:
-                    case pygame.K_w | pygame.K_UP:
-                        self.plane.mup = False
-                    case pygame.K_a | pygame.K_LEFT:
-                        self.plane.mleft = False
-                        if self.plane.mright == False:
-                            self.plane.image = self.plane.original_image
-                        else:
-                            self.plane.image = self.plane.tilted_image
-                    case pygame.K_s | pygame.K_DOWN:
-                        self.plane.mdown = False
-                    case pygame.K_d | pygame.K_RIGHT:
-                        self.plane.mright = False
-                        if self.plane.mleft == False:
-                            self.plane.image = self.plane.original_image
-                        else:
-                            self.plane.image = pygame.transform.flip(self.plane.tilted_image, True, False)
-                    case pygame.K_SPACE:
-                        self.plane.fire = False
+                keyboard_settings = self.settings_manager.get_keyboard_settings()
+                if event.key == keyboard_settings['up']:
+                    self.plane.mup = False
+                elif event.key == keyboard_settings['down']:
+                    self.plane.mdown = False
+                elif event.key == keyboard_settings['left']:
+                    self.plane.mleft = False
+                    if not self.plane.mright:
+                        self.plane.image = self.plane.original_image
+                    else:
+                        self.plane.image = self.plane.tilted_image
+                elif event.key == keyboard_settings['right']:
+                    self.plane.mright = False
+                    if not self.plane.mleft:
+                        self.plane.image = self.plane.original_image
+                    else:
+                        self.plane.image = pygame.transform.flip(self.plane.tilted_image, True, False)
+                elif event.key == keyboard_settings['shoot']:
+                    self.plane.fire = False
 
     # 玩家受伤
     def plane_hurt(self):

@@ -6,6 +6,7 @@ class MenuState(Enum):
     MAIN = auto()
     AUTH = auto()
     LEADERBOARD = auto()
+    SET = auto()
 
 class GameState(Enum):
     # 游戏相关状态
