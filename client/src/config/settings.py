@@ -9,6 +9,7 @@ BULLET_NUM = 20  # 玩家子弹总数
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (60, 60, 60)
+RED = (255, 0, 0)
 
 # 速度设置
 PLAYER_SPEED = 5  # 玩家飞行速度

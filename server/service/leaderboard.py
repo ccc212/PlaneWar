@@ -43,20 +43,3 @@ class LeaderboardService:
             score=user.highest_score,
             rank=index + 1
         ) for index, user in enumerate(top_users)]
-
-    # 获取指定用户的排名信息
-    def get_user_rank(self, user_id: int) -> Dict:
-        user = User.query.get(user_id)
-        if not user:
-            raise ValueError('用户不存在')
-            
-        # 计算用户排名
-        rank = User.query.filter(
-            User.highest_score > user.highest_score
-        ).count() + 1
-        
-        return {
-            'username': user.username,
-            'score': user.highest_score,
-            'rank': rank
-        }

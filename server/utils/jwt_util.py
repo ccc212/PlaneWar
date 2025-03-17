@@ -30,7 +30,6 @@ def jwt_required(f):
 
         try:
             # 解析token
-            token = token.split(' ')[1]  # Bearer token
             data = jwt.decode(
                 token,
                 Config.JWT_SECRET_KEY,
@@ -40,7 +39,5 @@ def jwt_required(f):
             request.username = data['username']
         except:
             return jsonify(vars(Result.error('无效的token'))), 401
-
         return f(*args, **kwargs)
-
     return decorated

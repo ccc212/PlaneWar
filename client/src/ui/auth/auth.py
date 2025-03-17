@@ -6,6 +6,9 @@ from client.src.ui.common.input_box import InputBox
 from client.src.config.settings import BLACK, WHITE, API_BASE_URL
 from client.src.ui.common.button import Button
 import requests
+from client.src.ui.common.message_dialog import MessageDialog
+from client.src.utils.http_client import HttpClient
+from client.src.managers.auth_manager import AuthManager
 
 
 class AuthDialog:
@@ -23,7 +26,7 @@ class AuthDialog:
         # 设置字体
         self.font = pygame.font.SysFont('fangsong', 30, True)
 
-        # 状态管理器
+        # 管理器
         self.state_manager = GameStateManager()
 
         # 创建用户名输入框
@@ -53,6 +56,7 @@ class AuthDialog:
             BLACK,
             (self.rect.centerx - 80, self.rect.bottom - 50)
         )
+
         # 创建注册按钮
         self.register_button = Button(
             screen,
@@ -61,14 +65,18 @@ class AuthDialog:
             BLACK,
             (self.rect.centerx + 80, self.rect.bottom - 50)
         )
+
         # 创建关闭按钮
         self.close_button = Button(
             screen,
-            'X',
+            '×',
             self.font,
             BLACK,
             (self.rect.right - 20, self.rect.top + 20)
         )
+
+        # 创建消息对话框
+        self.message_dialog = MessageDialog(screen)
 
     def draw(self):
         # 绘制对话框背景
@@ -81,8 +89,11 @@ class AuthDialog:
         self.login_button.draw()
         self.register_button.draw()
         self.close_button.draw()
+        self.message_dialog.draw()
 
     def handle_click(self, pos):
+        if self.message_dialog.handle_click(pos):
+            return
         # 点击关闭按钮
         if self.close_button.rect.collidepoint(pos):
             self.state_manager.set_menu_state(MenuState.MAIN)
@@ -90,14 +101,18 @@ class AuthDialog:
         # 点击登录按钮
         if self.login_button.rect.collidepoint(pos):
             username = self._handle_login()
-            self.state_manager.set_menu_state(MenuState.MAIN)
-            return username
+            if username is not None:
+                self.state_manager.set_menu_state(MenuState.MAIN)
+                return username
+            return '未登录'
 
         # 点击注册按钮
         if self.register_button.rect.collidepoint(pos):
             username = self._handle_register()
-            self.state_manager.set_menu_state(MenuState.MAIN)
-            return username
+            if username is not None:
+                self.state_manager.set_menu_state(MenuState.MAIN)
+                return username
+            return '未登录'
             
         # 点击输入框
         self.username_input.handle_click(pos)
@@ -112,31 +127,32 @@ class AuthDialog:
     def _handle_login(self):
         # 处理登录请求
         try:
-            # 发送登录POST请求
-            response = requests.post(
+            response = HttpClient.post(
                 f'{API_BASE_URL}/auth/login',
-                json={
+                {
                     'username': self.username_input.text,
                     'password': self.password_input.text
                 }
             )
-            # 登录成功返回用户名
-            if response.status_code == 200:
+            data = response.json()
+            
+            if data['code'] == 200:
+                AuthManager().set_token(data.get('data').get('token'))
+                AuthManager().set_username(data.get('data').get('username'))
                 return self.username_input.text
             else:
-                # TODO: 显示错误信息
+                self.message_dialog.show(data.get('msg', '登录失败'))
                 return None
-        except:
-            # TODO: 显示网络错误
+        except Exception as e:
+            self.message_dialog.show(str(e))
             return None
             
     def _handle_register(self):
         # 处理注册请求
         try:
-            # 发送注册POST请求
-            response = requests.post(
+            response = HttpClient.post(
                 f'{API_BASE_URL}/auth/register',
-                json={
+                {
                     'username': self.username_input.text,
                     'password': self.password_input.text
                 }
@@ -145,8 +161,8 @@ class AuthDialog:
             if response.status_code == 200:
                 return self._handle_login()
             else:
-                # TODO: 显示错误信息
+                self.message_dialog.show(response.json().get('msg', '注册失败'))
                 return None
-        except:
-            # TODO: 显示网络错误
+        except Exception as e:
+            self.message_dialog.show(str(e))
             return None

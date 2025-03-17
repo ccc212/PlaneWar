@@ -12,7 +12,6 @@ leaderboard_service = LeaderboardService()
 @leaderboard_bp.route('/score', methods=['POST'])
 @jwt_required  # 需要JWT认证
 def update_score():
-    # 获取请求数据
     data = request.get_json()
     data['user_id'] = request.user_id  # 从JWT中获取用户ID
     
@@ -28,7 +27,6 @@ def update_score():
 # 获取排行榜
 @leaderboard_bp.route('/top', methods=['GET'])
 def get_top_scores():
-    # 获取请求参数
     limit = request.args.get('limit', 10, type=int)
     try:
         scores = leaderboard_service.get_top_scores(limit)
