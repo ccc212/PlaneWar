@@ -15,9 +15,6 @@ class LeaderboardDialog:
         self.screen_rect = screen.get_rect()
         self.my_rank_data = None
 
-        # 状态管理器
-        self.state_manager = GameStateManager()
-
         # 对话框尺寸和位置
         dialog_width = 400
         dialog_height = 620
@@ -174,4 +171,4 @@ class LeaderboardDialog:
     def handle_click(self, pos):
         # 处理点击事件
         if self.close_rect.collidepoint(pos):
-            self.state_manager.set_menu_state(MenuState.MAIN)
+            GameStateManager().set_menu_state(MenuState.MAIN)

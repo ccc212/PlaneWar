@@ -47,6 +47,15 @@ class Menu:
             center=(self.screen_rect.centerx, self.screen_rect.centery + 100)
         )
 
+        # 退出游戏按钮
+        self.exit_button = Button(
+            screen=screen,
+            text='退出游戏',
+            font=self.button_font,
+            color=BLACK,
+            center=(self.screen_rect.centerx, self.screen_rect.centery + 200)
+        )
+
         # 用户状态按钮
         self.auth_font = pygame.font.SysFont('fangsong', 30, True)
         self.auth_button = Button(
@@ -62,14 +71,12 @@ class Menu:
         # 创建排行榜对话框
         self.leaderboard_dialog = LeaderboardDialog(screen)
         # 创建设置对话框
-        self.set_dialog = SetDialog(screen)
+        self.set_dialog = SetDialog(screen, MenuState.MAIN)
 
-        # 获取状态管理器实例
-        self.state_manager = GameStateManager()
         # 注册状态变化监听器
-        self.state_manager.add_listener(EventType.UI_STATE_CHANGE, self._on_ui_state_change)
+        GameStateManager().add_listener(EventType.UI_STATE_CHANGE, self._on_ui_state_change)
         # 初始化状态
-        self.state_manager.set_menu_state(MenuState.MAIN)
+        GameStateManager().set_menu_state(MenuState.MAIN)
 
         # 保存当前登录用户名
         self.username = None
@@ -95,6 +102,7 @@ class Menu:
             self.auth_button.draw()
             self.play_button.draw()
             self.set_button.draw()
+            self.exit_button.draw()
             self.leaderboard_button.draw()
 
     def handle_click(self, pos):
@@ -108,10 +116,12 @@ class Menu:
             self.set_dialog.handle_click(pos)
         elif self.current_state == MenuState.MAIN:
             if self.auth_button.rect.collidepoint(pos):
-                self.state_manager.set_menu_state(MenuState.AUTH)
+                GameStateManager().set_menu_state(MenuState.AUTH)
             elif self.leaderboard_button.rect.collidepoint(pos):
-                self.state_manager.set_menu_state(MenuState.LEADERBOARD)
+                GameStateManager().set_menu_state(MenuState.LEADERBOARD)
             elif self.play_button.rect.collidepoint(pos):
-                self.state_manager.set_game_state(GameState.PLAYING)
+                GameStateManager().set_game_state(GameState.PLAYING)
             elif self.set_button.rect.collidepoint(pos):
-                self.state_manager.set_menu_state(MenuState.SET)
+                GameStateManager().set_menu_state(MenuState.SET)
+            elif self.exit_button.rect.collidepoint(pos):
+                pygame.quit()

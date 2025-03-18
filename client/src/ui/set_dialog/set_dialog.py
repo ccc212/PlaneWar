@@ -1,21 +1,20 @@
-import pygame
 import copy
+
+import pygame
+
 from client.src.config.settings import BLACK, WHITE
-from client.src.enums.game_state import MenuState
+from client.src.enums.game_state import MenuState, GameState
+from client.src.managers.settings_manager import SettingsManager
 from client.src.managers.state_manager import GameStateManager
 from client.src.ui.common.message_dialog import MessageDialog
-from client.src.managers.settings_manager import SettingsManager
 
 
 class SetDialog:
-    def __init__(self, screen):
+    def __init__(self, screen, before_state=None):
         # 初始化
         self.screen = screen
         self.screen_rect = screen.get_rect()
-
-        # 管理器
-        self.state_manager = GameStateManager()
-        self.settings_manager = SettingsManager()
+        self.before_state = before_state
 
         # 对话框尺寸和位置
         dialog_width = 400
@@ -51,7 +50,7 @@ class SetDialog:
         ]
 
         # 从设置管理器加载按键值
-        keyboard_settings = self.settings_manager.get_keyboard_settings()
+        keyboard_settings = SettingsManager().get_keyboard_settings()
         self.keyboard_values = [
             keyboard_settings['up'],
             keyboard_settings['down'],
@@ -161,7 +160,7 @@ class SetDialog:
                     'pause': self.keyboard_values[4],
                     'shoot': self.keyboard_values[5]
                 }
-                self.settings_manager.update_keyboard_settings(keyboard_settings)
+                SettingsManager().update_keyboard_settings(keyboard_settings)
                 self.current_option = None
                 return
 
@@ -176,12 +175,16 @@ class SetDialog:
         else:
             # 处理主设置界面的点击
             start_y = self.rect.top + 80
-            for i,option in enumerate(self.set_options):
+            for i, option in enumerate(self.set_options):
                 if option == '返回':
                     # 返回按钮的点击检测
                     if (self.rect.right - 100 <= pos[0] <= self.rect.right - 20 and
                         start_y + i * 50 <= pos[1] <= start_y + (i + 1) * 50):
-                        self.state_manager.set_menu_state(MenuState.MAIN)
+                        if self.before_state:
+                            if isinstance(self.before_state, MenuState):
+                                GameStateManager().set_menu_state(self.before_state)
+                            elif isinstance(self.before_state, GameState):
+                                GameStateManager().set_game_state(self.before_state)
                         return
                 else:
                     # 其他选项的点击检测

@@ -27,9 +27,6 @@ class AuthDialog:
         # 设置字体
         self.font = pygame.font.SysFont('fangsong', 30, True)
 
-        # 管理器
-        self.state_manager = GameStateManager()
-
         # 创建用户名输入框
         self.username_input = InputBox(
             self.rect.left + 50,
@@ -97,14 +94,14 @@ class AuthDialog:
             return
         # 点击关闭按钮
         if self.close_button.rect.collidepoint(pos):
-            self.state_manager.set_menu_state(MenuState.MAIN)
+            GameStateManager().set_menu_state(MenuState.MAIN)
 
         # 点击登录按钮
         if self.login_button.rect.collidepoint(pos):
             username = self._handle_login()
             if username is not None:
                 ScoreManager().get_highest_score(username)
-                self.state_manager.set_menu_state(MenuState.MAIN)
+                GameStateManager().set_menu_state(MenuState.MAIN)
                 return username
             return '未登录'
 
@@ -112,7 +109,7 @@ class AuthDialog:
         if self.register_button.rect.collidepoint(pos):
             username = self._handle_register()
             if username is not None:
-                self.state_manager.set_menu_state(MenuState.MAIN)
+                GameStateManager().set_menu_state(MenuState.MAIN)
                 return username
             return '未登录'
             

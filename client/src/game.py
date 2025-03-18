@@ -8,6 +8,7 @@ from client.src.managers.state_manager import GameStateManager
 from client.src.models.base import Screen
 from client.src.ui.game.game import GameUI
 from client.src.ui.game.menu import Menu
+from client.src.ui.game.pause_dialog import PauseDialog
 from config.settings import *
 from managers.enemy_manager import EnemyManager
 from models.player import Player
@@ -26,21 +27,18 @@ class App:
         # 鼠标位置
         self.mouse_pos = None
 
-        # 初始化管理器
-        self.score_manager = ScoreManager()
-        self.enemy_manager = EnemyManager()
-        self.settings_manager = SettingsManager()
-        self.state_manager = GameStateManager()
-        self.state_manager.add_listener(EventType.GAME_STATE_CHANGE, self._on_game_state_change)
+        # 添加游戏状态监听器
+        GameStateManager().add_listener(EventType.GAME_STATE_CHANGE, self._on_game_state_change)
 
         # 初始化游戏状态
-        self.game_state = GameState.NOT_STARTED
+        GameStateManager().set_game_state(GameState.NOT_STARTED)
         self.setup_game()
         self.clock = pygame.time.Clock()
 
         # 初始化UI
         self.menu = Menu(self.screen)
         self.game_ui = GameUI(self.screen)
+        self.pause_dialog = PauseDialog(self.screen)
 
         # 模拟按下shift键切换为英文输入
         pyautogui.press('shift')
@@ -60,16 +58,12 @@ class App:
         self.level = 1
         self.plane.hp = PLAYER_HP
         self.plane.rect.midbottom = self.screen_rect.midbottom
-        self.enemy_manager.reset()
+        EnemyManager().reset()
 
     def _on_game_state_change(self, new_state):
         print(new_state)
-        # if new_state == GameState.PLAYING:
-        #     self.start = True
         if new_state == GameState.OVER:
-            self.score_manager.update_highest_score(self.score)
-        # elif new_state == GameState.MAIN:
-        #     self.start = False
+            ScoreManager().update_highest_score(self.score)
 
     def events(self):
         # 处理所有游戏事件
@@ -81,14 +75,18 @@ class App:
             # 鼠标点击事件
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.mouse_pos = pygame.mouse.get_pos()
-                if self.game_state == GameState.NOT_STARTED or self.game_state == GameState.OVER:
+                if (GameStateManager().get_game_state() == GameState.NOT_STARTED 
+                        or GameStateManager().get_game_state() == GameState.OVER):
                     self.menu.handle_click(self.mouse_pos)
+                elif GameStateManager().get_game_state() == GameState.PAUSED:
+                    is_restart = self.pause_dialog.handle_click(self.mouse_pos)
+                    if is_restart:
+                        self.setup_game()
+                        GameStateManager().set_game_state(GameState.PLAYING)
             # 键盘按下事件
             elif event.type == pygame.KEYDOWN:
-                if self.state_manager.get_menu_state() == MenuState.SET:
-                    self.menu.set_dialog.handle_keydown(event)
-                elif self.game_state == GameState.PLAYING:
-                    keyboard_settings = self.settings_manager.get_keyboard_settings()
+                if GameStateManager().get_game_state() == GameState.PLAYING:
+                    keyboard_settings = SettingsManager().get_keyboard_settings()
                     if event.key == keyboard_settings['up']:
                         self.plane.mup = True
                     elif event.key == keyboard_settings['down']:
@@ -102,11 +100,8 @@ class App:
                     elif event.key == keyboard_settings['shoot']:
                         self.plane.fire = True
                     elif event.key == keyboard_settings['pause']:
-                        self.state_manager.set_game_state(GameState.PAUSED)
-                    elif event.key == pygame.K_ESCAPE:
-                        print('游戏已结束')
-                        pygame.quit()
-                        self.state_manager.set_game_state(GameState.OVER)
+                        GameStateManager().set_game_state(GameState.PAUSED)
+                        self.pause_dialog.show()
                     elif event.key == pygame.K_TAB:
                         # 切换武器类型
                         if self.plane.fire_kind == 1:
@@ -115,14 +110,20 @@ class App:
                             self.plane.fire_kind = 3
                         elif self.plane.fire_kind == 3:
                             self.plane.fire_kind = 1
-                elif self.state_manager.get_menu_state() == MenuState.AUTH:
+
+                elif GameStateManager().get_menu_state() == MenuState.AUTH:
                     # 处理输入框事件
                     self.menu.auth_dialog.handle_event(event)
-                    
+
+                elif GameStateManager().get_menu_state() == MenuState.SET:
+                    self.menu.set_dialog.handle_keydown(event)
+
+                elif GameStateManager().get_game_state() == GameState.PAUSED and self.pause_dialog.is_set:
+                    self.pause_dialog.set_dialog.handle_keydown(event)
 
             # 键盘松开事件
             elif event.type == pygame.KEYUP:
-                keyboard_settings = self.settings_manager.get_keyboard_settings()
+                keyboard_settings = SettingsManager().get_keyboard_settings()
                 if event.key == keyboard_settings['up']:
                     self.plane.mup = False
                 elif event.key == keyboard_settings['down']:
@@ -153,7 +154,7 @@ class App:
     def plane_hp(self):
         # 显示玩家血量
         plane_hp = pygame.sprite.Group()
-        if self.game_state == GameState.PLAYING:
+        if GameStateManager().get_game_state() == GameState.PLAYING:
             for num in range(1, self.plane.hp + 1):
                 love = pygame.sprite.Sprite()
                 love.image = pygame.image.load(f'{RESOURCE_PATH}/icon/blood.png')
@@ -169,56 +170,56 @@ class App:
         # 重置游戏状态
         self.plane.hp = 3
         self.plane.bullets.empty()
-        self.enemy_manager.enemies.empty()
-        self.game_state = GameState.NOT_STARTED
+        EnemyManager().enemies.empty()
+        GameStateManager().set_game_state(GameState.NOT_STARTED)
         self.plane.fire_kind = 1
-        self.enemy_manager.bullets.empty()
-        self.state_manager.set_menu_state(MenuState.MAIN)
+        EnemyManager().bullets.empty()
+        GameStateManager().set_menu_state(MenuState.MAIN)
 
     def collision(self):
         # 处理敌人碰撞检测
-        for each in self.enemy_manager.enemies:
+        for each in EnemyManager().enemies:
             if each.live:
-                co1 = pygame.sprite.groupcollide(self.plane.bullets, self.enemy_manager.enemies, True, False)
+                co1 = pygame.sprite.groupcollide(self.plane.bullets, EnemyManager().enemies, True, False)
                 if each.hp > 0 and co1:
                     each.hp -= 1
                     if each.hp == 0:
-                        self.enemy_manager.enemies.remove(each)
+                        EnemyManager().enemies.remove(each)
                         for item in co1.values():
-                            self.score += self.enemy_manager.enemy.points * len(item)
+                            self.score += EnemyManager().enemy.points * len(item)
 
         # 玩家碰撞检测
-        if (pygame.sprite.spritecollideany(self.plane, self.enemy_manager.enemies) or 
-            pygame.sprite.groupcollide(self.plane_group, self.enemy_manager.bullets, False, True)):
+        if (pygame.sprite.spritecollideany(self.plane, EnemyManager().enemies) or
+            pygame.sprite.groupcollide(self.plane_group, EnemyManager().bullets, False, True)):
             if self.plane.hp > 0:
                 self.plane_hurt()
             else:
                 self.plane_die()
 
         # 敌人到达底部
-        for enemy in self.enemy_manager.enemies:
+        for enemy in EnemyManager().enemies:
             if enemy.rect.bottom >= self.screen_rect.bottom:
                 self.restart_game()
 
         # 关卡完成检查
-        if self.enemy_manager.enemies_count == ENEMIES_TOTAL:
-            if not self.enemy_manager.enemies:
-                self.enemy_manager.restart()
-                self.enemy_manager.update()
-                self.enemy_manager.enemies.draw(self.screen)
+        if EnemyManager().enemies_count == ENEMIES_TOTAL:
+            if not EnemyManager().enemies:
+                EnemyManager().restart()
+                EnemyManager().update()
+                EnemyManager().enemies.draw(self.screen)
                 self.level += 1
 
     def update_enemies(self):
         # 更新敌人位置
-        self.enemy_manager.update()
-        self.enemy_manager.enemies.draw(self.screen)
+        EnemyManager().update()
+        EnemyManager().enemies.draw(self.screen)
 
     def level_change(self):
         # 关卡变化处理
         if self.level % 3 == 0:
-            self.enemy_manager.boss_open = True
+            EnemyManager().boss_open = True
         else:
-            self.enemy_manager.boss_open = False
+            EnemyManager().boss_open = False
 
     def run(self):
         while True:
@@ -226,9 +227,7 @@ class App:
             self.screen.fill(WHITE)
             self.events()
 
-            self.game_state = self.state_manager.get_game_state()
-            
-            if self.game_state == GameState.PLAYING:
+            if GameStateManager().get_game_state() == GameState.PLAYING:
                 self.game_ui.draw_hp(self.plane.hp)
                 self.collision()
                 if self.plane.hp > 0:
@@ -236,14 +235,25 @@ class App:
                     self.level_change()
                     self.plane.update()
                     self.update_enemies()
-                    self.game_ui.draw_bullets(self.plane.bullets, self.enemy_manager.bullets)
+                    self.game_ui.draw_bullets(self.plane.bullets, EnemyManager().bullets)
                     self.game_ui.draw_score(
                         self.score,
-                        self.score_manager.get_highest_score(),
+                        ScoreManager().get_highest_score(),
                         self.level
                     )
                 else:
-                    self.state_manager.set_game_state(GameState.OVER)
+                    GameStateManager().set_game_state(GameState.OVER)
+            elif GameStateManager().get_game_state() == GameState.PAUSED:
+                self.game_ui.draw_hp(self.plane.hp)
+                self.screen.blit(self.plane.image, self.plane.rect)
+                self.game_ui.draw_bullets(self.plane.bullets, EnemyManager().bullets)
+                self.game_ui.draw_score(
+                    self.score,
+                    ScoreManager().get_highest_score(),
+                    self.level
+                )
+                EnemyManager().enemies.draw(self.screen)
+                self.pause_dialog.draw()
             else:
                 self.menu.draw()
                 self._init_attributes()
