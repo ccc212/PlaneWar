@@ -169,6 +169,9 @@ class LeaderboardDialog:
 
 
     def handle_click(self, pos):
+        if not self.rect.collidepoint(pos):
+            return
+
         # 处理点击事件
         if self.close_rect.collidepoint(pos):
             GameStateManager().set_menu_state(MenuState.MAIN)

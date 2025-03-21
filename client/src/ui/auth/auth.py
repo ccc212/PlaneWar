@@ -90,7 +90,7 @@ class AuthDialog:
         self.message_dialog.draw()
 
     def handle_click(self, pos):
-        if self.message_dialog.handle_click(pos):
+        if self.message_dialog.handle_click(pos) or not self.rect.collidepoint(pos):
             return
         # 点击关闭按钮
         if self.close_button.rect.collidepoint(pos):

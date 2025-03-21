@@ -10,6 +10,7 @@ class AuthManager:
     def _init(self):
         self.token = None
         self.username = None
+        self.GUEST = 'guest'
 
     def set_token(self, token):
         self.token = token

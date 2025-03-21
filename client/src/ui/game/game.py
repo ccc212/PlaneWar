@@ -1,6 +1,8 @@
 import pygame
 
 from client.src.config.settings import BLACK, RESOURCE_PATH, SCREEN_WIDTH, GRAY
+from client.src.managers.enemy_manager import EnemyManager
+from client.src.managers.player_manager import PlayerManager
 from client.src.ui.common.message_dialog import MessageDialog
 
 
@@ -11,10 +13,11 @@ class GameUI:
         self.game_font = pygame.font.SysFont('fangsong', 40, True)
         self.message_dialog = MessageDialog(screen)
 
-    def draw_hp(self, plane_hp):
+    def draw_hp(self):
         # 显示玩家血量
+        player = PlayerManager().get_player()
         plane_hp_group = pygame.sprite.Group()
-        for num in range(1, plane_hp + 1):
+        for num in range(1, player.hp + 1):
             love = pygame.sprite.Sprite()
             love.image = pygame.image.load(f'{RESOURCE_PATH}/icon/blood.png')
             love.image = pygame.transform.rotozoom(love.image, 0, 0.25)
@@ -45,15 +48,19 @@ class GameUI:
         self.screen.blit(tab_str, tab_str_rect)
 
     def draw_bullets(self, plane_bullets, enemy_bullets):
-        # 更新子弹位置
-        for bullet in plane_bullets:
-            pygame.draw.rect(self.screen, BLACK, bullet.rect)
-            bullet.update()
-            if bullet.rect.bottom < 0:
-                plane_bullets.remove(bullet)
+        # 更新玩家子弹位置
+        if plane_bullets:
+            for bullet in plane_bullets:
+                pygame.draw.rect(self.screen, BLACK, bullet.rect)
+                bullet.update()
+                if bullet.rect.bottom < 0:
+                    plane_bullets.remove(bullet)
 
-        for bullet in enemy_bullets:
-            pygame.draw.rect(self.screen, BLACK, bullet.rect)
-            bullet.update()
-            if bullet.rect.bottom > self.screen_rect.bottom:
-                enemy_bullets.remove(bullet)
+        # 更新敌人子弹位置
+        EnemyManager().enemy_bullet_update()
+        if enemy_bullets:
+            for bullet in enemy_bullets:
+                pygame.draw.rect(self.screen, BLACK, bullet.rect)
+                bullet.update()
+                if bullet.rect.bottom > self.screen_rect.bottom:
+                    enemy_bullets.remove(bullet)

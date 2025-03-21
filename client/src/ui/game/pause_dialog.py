@@ -4,7 +4,7 @@ from client.src.config.settings import BLACK, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE
 from client.src.enums.game_state import GameState, MenuState
 from client.src.managers.state_manager import GameStateManager
 from client.src.ui.common.button import Button
-from client.src.ui.set_dialog.set_dialog import SetDialog
+from client.src.ui.set.set_dialog import SetDialog
 
 
 class PauseDialog:
@@ -102,7 +102,7 @@ class PauseDialog:
 
     # 返回是否重新开始游戏
     def handle_click(self, pos):
-        if not self.visible:
+        if not self.visible or not self.rect.collidepoint(pos):
             return False
 
         if self.is_set:

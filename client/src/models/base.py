@@ -34,9 +34,8 @@ class GameObject(Sprite):
         self.live = True  # 是否活着
 
         # 获取 Screen 单例
-        self.screen_manager = Screen()
-        self.screen = self.screen_manager.screen
-        self.screen_rect = self.screen_manager.rect
+        self.screen = Screen().screen
+        self.screen_rect = Screen().rect
 
 
 # 敌人基类

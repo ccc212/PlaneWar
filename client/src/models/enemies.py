@@ -105,7 +105,7 @@ class Enemy5(Enemy):
             hp=4,
             spawn_x=random.randint(0, SCREEN_WIDTH - (int)(1 * 200)))
         self.num = 0
-        self.bullets = pygame.sprite.Group()
+        self.enemy_bullet_group = pygame.sprite.Group()
 
     def update(self):
         self.fire_switch = True
