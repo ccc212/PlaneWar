@@ -1,5 +1,5 @@
 # 后端调用的URL
-API_BASE_URL = 'http://localhost:5000'
+API_BASE_URL = 'http://localhost:5428'
 
 # 游戏基础设置
 FPS = 60  # 帧率

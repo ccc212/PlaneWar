@@ -35,6 +35,17 @@ def get_top_scores():
         data=scores
     ))
 
+# 根据用户名获取排行榜
+@leaderboard_bp.route('/<string:username>', methods=['GET'])
+def get_user_scores(username):
+    try:
+        scores = leaderboard_service.get_user_scores(username)
+    except ValueError as e:
+        return jsonify(vars(Result.error(str(e)))), 400
+    return jsonify(Result.success(
+        data=scores
+    ))
+
 # 获取最高分数
 @leaderboard_bp.route('/highest', methods=['GET'])
 def get_highest_score():

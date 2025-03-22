@@ -53,13 +53,21 @@ class LeaderboardDialog:
         self.message_dialog = MessageDialog(screen)
 
     def fetch_leaderboard(self):
-        # 获取排行榜数据
+        # 获取排行榜数据和我的排行数据
         try:
             response = HttpClient.get(f'{API_BASE_URL}/leaderboard/top')
             if response.status_code == 200:
                 data = response.json()
                 if data['code'] == 200:
                     self.leaderboard_data = data['data']
+
+            # 存下我的排行榜数据
+            username = AuthManager().get_username()
+            response = HttpClient.get(f'{API_BASE_URL}/leaderboard/{username}')
+            if response.status_code == 200:
+                data = response.json()
+                if data['code'] == 200:
+                    self.my_rank_data = data['data']
         except Exception as e:
             self.message_dialog.show(str(e))
             self.leaderboard_data = []
@@ -95,7 +103,6 @@ class LeaderboardDialog:
 
         # 绘制排行榜数据
         start_y = header_y + 60
-        username = AuthManager().get_username()
         for item in self.leaderboard_data:
             # 排名
             rank_text = self.item_font.render(f"{item['rank']}", True, BLACK)
@@ -108,9 +115,6 @@ class LeaderboardDialog:
             name_rect = name_text.get_rect()
             name_rect.left = self.rect.left + 120
             name_rect.top = start_y
-            if item['username'] == username:
-                # 存下我的排行榜数据
-                self.my_rank_data = item
 
             # 分数
             score_text = self.item_font.render(str(item['score']), True, BLACK)

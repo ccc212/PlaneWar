@@ -2,6 +2,7 @@ from typing import List, Dict
 from server.domain.models.user import User
 from server import db
 from server.domain.vo.leaderboard_vo import TopScoreVO
+from sqlalchemy import text
 
 
 class LeaderboardService:
@@ -32,16 +33,42 @@ class LeaderboardService:
         if limit < 1:
             raise ValueError('limit必须大于0')
             
-        # 查询前N名玩家
-        top_users = User.query.order_by(
-            User.highest_score.desc()
-        ).limit(limit).all()
-
+        # 使用窗口函数查询前N名玩家
+        sql = text("""
+            SELECT username, highest_score, 
+                   DENSE_RANK() OVER (ORDER BY highest_score DESC) as `rank`
+            FROM user
+            LIMIT :limit
+        """)
+        
+        results = db.session.execute(sql, {'limit': limit}).fetchall()
+        
         return [TopScoreVO(
-            username=user.username,
-            score=user.highest_score,
-            rank=index + 1
-        ) for index, user in enumerate(top_users)]
+            username=result.username,
+            score=result.highest_score,
+            rank=result.rank
+        ) for result in results]
+
+    # 根据用户名获取排行榜
+    def get_user_scores(self, username):
+        # 使用子查询确保窗口函数在过滤前计算排名
+        sql = text("""
+            WITH ranked_users AS (
+                SELECT username, highest_score, 
+                       DENSE_RANK() OVER (ORDER BY highest_score DESC) as `rank`
+                FROM user
+            )
+            SELECT * FROM ranked_users
+            WHERE username = :username
+        """)
+        
+        result = db.session.execute(sql, {'username': username}).first()
+        
+        return TopScoreVO(
+            username=result.username,
+            score=result.highest_score,
+            rank=result.rank
+        ) if result else None
 
     # 获取最高分数
     def get_highest_score(self) -> int:
@@ -54,4 +81,3 @@ class LeaderboardService:
     def get_user_highest_score(self, username: str):
         user = User.query.filter_by(username=username).first()
         return user.highest_score if user else 0
-

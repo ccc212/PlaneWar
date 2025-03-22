@@ -1,7 +1,6 @@
 from client.src.config.settings import PLAYER_SPEED, PLAYER_HP, BULLET_NUM, SCREEN_WIDTH, SCREEN_HEIGHT
 from .base import GameObject
 from .bullets import *
-from ..managers.auth_manager import AuthManager
 
 
 class Player(GameObject):
